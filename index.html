@@ -1,84 +1,154 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Secret Drop</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OPENTHEDOOR</title>
   <style>
-    body {
+    html, body {
       margin: 0;
-      height: 100vh;
-      background: #0d0d0d;
-      color: #fff;
-      font-family: 'Courier New', monospace;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      flex-direction: column;
+      padding: 0;
+      height: 100%;
+      background: black;
       overflow: hidden;
+      font-family: 'Courier New', monospace;
+      color: white;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
     }
 
-    .hidden {
+    canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 0;
+    }
+
+    #overlay {
+      position: absolute;
+      z-index: 1;
+      text-align: center;
+      padding: 20px;
+      background: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
+    }
+
+    #password-input {
+      padding: 10px;
+      font-size: 18px;
+      background: #111;
+      border: 1px solid #444;
+      color: #0f0;
+      margin-top: 10px;
+    }
+
+    #secret-content {
       display: none;
-    }
-
-    #password-container, #secret-container {
+      flex-direction: column;
+      align-items: center;
+      margin-top: 20px;
       animation: fadeIn 2s ease-in-out;
     }
 
     @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(-20px); }
+      from { opacity: 0; transform: translateY(20px); }
       to { opacity: 1; transform: translateY(0); }
     }
 
-    input[type="password"] {
-      padding: 10px;
-      background: #111;
-      border: 1px solid #333;
-      color: #0f0;
-      font-size: 18px;
-      text-align: center;
-      outline: none;
+    #logo {
+      width: 150px;
+      margin: 20px;
     }
 
-    .glitch {
-      font-size: 2rem;
+    .location {
       color: #0f0;
-      text-shadow: 0 0 5px #0f0, 0 0 10px #0f0;
-      animation: flicker 1.5s infinite alternate;
+      font-size: 1.5rem;
+      text-shadow: 0 0 10px #0f0;
     }
 
-    @keyframes flicker {
-      0% { opacity: 0.1; }
-      50% { opacity: 0.8; }
-      100% { opacity: 1; }
+    @media (max-width: 600px) {
+      #logo { width: 100px; }
+      .location { font-size: 1.2rem; }
     }
   </style>
 </head>
 <body>
-  <div id="password-container">
-    <div class="glitch">Enter the key</div>
-    <input type="password" id="password" placeholder="Type the password" />
+  <canvas id="bg"></canvas>
+  <div id="overlay">
+    <h1>YOU ARE THE KEY</h1>
+    <input type="password" id="password-input" placeholder="Enter the password" />
+    <div id="secret-content">
+      <img src="logo.png" id="logo" alt="Logo">
+      <div class="location">📍 Secret Drop Location:<br><strong>Under the bridge, Milan</strong></div>
+    </div>
   </div>
 
-  <div id="secret-container" class="hidden">
-    <div class="glitch">🔒 Access granted</div>
-    <p>📍 Secret Drop Location: <span id="location">[Colosseo 1 May 2025]</span></p>
-  </div>
+  <!-- Three.js -->
+  <script src="https://cdn.jsdelivr.net/npm/three@0.148.0/build/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.148.0/examples/js/controls/OrbitControls.js"></script>
 
   <script>
-    const correctPassword = "youarethekey";
+    // Init scene
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(70, window.innerWidth/window.innerHeight, 0.1, 100);
+    const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('bg'), alpha: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    camera.position.z = 5;
 
-    document.getElementById("password").addEventListener("keyup", function (e) {
+    const controls = new THREE.OrbitControls(camera, renderer.domElement);
+    controls.enableZoom = false;
+    controls.enablePan = false;
+    controls.autoRotate = true;
+    controls.autoRotateSpeed = 1.2;
+
+    // Create mysterious door
+    const doorGeo = new THREE.BoxGeometry(1.2, 2, 0.1);
+    const doorMat = new THREE.MeshStandardMaterial({ color: 0xff0000, metalness: 0.3, roughness: 0.8 });
+    const door = new THREE.Mesh(doorGeo, doorMat);
+    door.rotation.y = -0.2;
+    scene.add(door);
+
+    // Add lighting
+    const ambient = new THREE.AmbientLight(0xffffff, 0.3);
+    scene.add(ambient);
+
+    const spot = new THREE.SpotLight(0xff0000, 2);
+    spot.position.set(5, 5, 5);
+    spot.castShadow = true;
+    scene.add(spot);
+
+    function animate() {
+      requestAnimationFrame(animate);
+      controls.update();
+      renderer.render(scene, camera);
+    }
+    animate();
+
+    // Password handling
+    const input = document.getElementById("password-input");
+    const secret = document.getElementById("secret-content");
+
+    input.addEventListener("keyup", (e) => {
       if (e.key === "Enter") {
-        const entered = e.target.value;
-        if (entered === correctPassword) {
-          document.getElementById("password-container").classList.add("hidden");
-          document.getElementById("secret-container").classList.remove("hidden");
+        if (input.value === "youarethekey") {
+          input.style.display = "none";
+          secret.style.display = "flex";
         } else {
-          e.target.style.borderColor = "#f00";
+          input.style.borderColor = "#f00";
         }
       }
+    });
+
+    // Resize handler
+    window.addEventListener("resize", () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
     });
   </script>
 </body>
