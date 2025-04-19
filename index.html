@@ -1,38 +1,85 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>OPENTHEDOOR</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Secret Drop</title>
   <style>
-    html, body {
+    body {
       margin: 0;
-      padding: 0;
-      height: 100%;
-      background: black;
-      overflow: hidden;
-      font-family: 'Courier New', monospace;
-      color: white;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-    }
-
-    canvas {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
       height: 100vh;
-      z-index: 0;
+      background: #0d0d0d;
+      color: #fff;
+      font-family: 'Courier New', monospace;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      overflow: hidden;
     }
 
-    #overlay {
-      position: absolute;
-      z-index: 1;
+    .hidden {
+      display: none;
+    }
+
+    #password-container, #secret-container {
+      animation: fadeIn 2s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    input[type="password"] {
+      padding: 10px;
+      background: #111;
+      border: 1px solid #333;
+      color: #0f0;
+      font-size: 18px;
       text-align: center;
-      padding: 20px;
-      background: rgba(0, 0, 0, 0.6);
-      backdrop-filter: blur(10px);
-      border-radius: 20
+      outline: none;
+    }
+
+    .glitch {
+      font-size: 2rem;
+      color: #0f0;
+      text-shadow: 0 0 5px #0f0, 0 0 10px #0f0;
+      animation: flicker 1.5s infinite alternate;
+    }
+
+    @keyframes flicker {
+      0% { opacity: 0.1; }
+      50% { opacity: 0.8; }
+      100% { opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+  <div id="password-container">
+    <div class="glitch">Enter the key</div>
+    <input type="password" id="password" placeholder="Type the password" />
+  </div>
+
+  <div id="secret-container" class="hidden">
+    <div class="glitch">🔒 Access granted</div>
+    <p>📍 Secret Drop Location: <span id="location">[REPLACE_THIS]</span></p>
+  </div>
+
+  <script>
+    const correctPassword = "youarethekey";
+
+    document.getElementById("password").addEventListener("keyup", function (e) {
+      if (e.key === "Enter") {
+        const entered = e.target.value;
+        if (entered === correctPassword) {
+          document.getElementById("password-container").classList.add("hidden");
+          document.getElementById("secret-container").classList.remove("hidden");
+        } else {
+          e.target.style.borderColor = "#f00";
+        }
+      }
+    });
+  </script>
+</body>
+</html>
